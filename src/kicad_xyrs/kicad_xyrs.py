@@ -1,6 +1,11 @@
 """
-kicad_xyrs
-Command line tool which exports the position of footprints from a PCB to create a test point document
+Core XYRS extraction and formatting logic for KiCad PCB files.
+
+This module provides utilities to extract XYRS (X, Y, Rotation, Side) information
+from KiCad footprints and format the data into tabular reports.
+
+Functions include unit conversion, sorting reference designators, determining
+coordinate origins, and formatting the final output for supported placement file types.
 """
 import math
 import csv
@@ -12,51 +17,13 @@ import pcbnew
 
 _log = logging.getLogger("kicad_xyrs")
 
-ORIGIN_MODES = {
-    "ORIGIN",
-    "DRILL",
-    "CENTER",
-    "BOTTOMLEFT",
-    "BOTTOMRIGHT",
-    "TOPLEFT",
-    "TOPRIGHT"
-}
 
-macrofab_name_map = {
-    "ref des": "Designator",
-    "x": "X-Loc",
-    "y": "Y-Loc",
-    "rotation": "Rotation",
-    "side": "Side",
-    "type": "Type",
-    "x size": "X-Size",
-    "y size": "Y-Size",
-    "value": "Value",
-    "footprint": "Footprint",
-    "DNP": "Populate",
-    "MPN": "MPN",
-}
-
-default_name_map = {
-    'ref des': 'ref des',
-    'side': 'side',
-    'x': 'x',
-    'y': 'y',
-    'rotation': 'rotation',
-    'type': 'type',
-    'x size': 'x size',
-    'y size': 'y size',
-    'value': 'value',
-    'footprint': 'footprint',
-    'library': 'library',
-    'DNP': 'DNP',
-    'MPN': 'MPN',
-}
-
-output_formats = {
-    "macrofab": {"origin_mode": "BOTTOMLEFT", "name_map": macrofab_name_map, "units": "thou", "ext": ".xyrs"},
-    "default": {"name_map": default_name_map, "units": "mm", "ext": ".csv"},
-}
+@dataclass
+class Settings:
+    """
+    All the options that can be passed
+    """
+    origin: tuple[float, float] = (0, 0)
 
 
 def convert_units(value, unit):
@@ -92,14 +59,6 @@ def translate_output(format_dict, df):
     return df[name_map.values()]
 
 
-@dataclass
-class Settings:
-    """
-    All the options that can be passed
-    """
-    origin: tuple[float, float] = (0, 0)
-
-
 def calc_position(center: tuple[float, float], origin: tuple[float, float]):
     """
     Calculate position as relative to the origin and in cartesian coordinates.
@@ -109,16 +68,6 @@ def calc_position(center: tuple[float, float], origin: tuple[float, float]):
 
 
 def get_position(p: pcbnew.FOOTPRINT, settings: Settings) -> tuple[float, float]:
-    """
-    Get the center of the pad, the origin setting, and the quadrant setting,
-    calculate the transformed position.
-
-    The position internal to kicad never changes. The position is always the distance from
-    the top left with x increasing to the right and y increasing down.
-
-    Take the origin location and calculate the distance. Then multiple the axis so it is
-    increasing in the desired direction. To match the gerbers this should be increasing right and up.
-    """
     origin = settings.origin
     center = [round(pt, 4) for pt in pcbnew.ToMM(p.GetCenter())]
     position = calc_position(origin=origin, center=center)
@@ -187,3 +136,65 @@ def build_footprint_report(
         {key: value(p, settings=settings) for key, value in _fields.items()}
         for p in footprints
     ]
+
+
+ORIGIN_MODES = {
+    "ORIGIN",
+    "DRILL",
+    "CENTER",
+    "BOTTOMLEFT",
+    "BOTTOMRIGHT",
+    "TOPLEFT",
+    "TOPRIGHT"
+}
+
+macrofab_name_map = {
+    "ref des": "Designator",
+    "x": "X-Loc",
+    "y": "Y-Loc",
+    "rotation": "Rotation",
+    "side": "Side",
+    "type": "Type",
+    "x size": "X-Size",
+    "y size": "Y-Size",
+    "value": "Value",
+    "footprint": "Footprint",
+    "DNP": "Populate",
+    "MPN": "MPN",
+}
+
+default_name_map = {
+    'ref des': 'ref des',
+    'side': 'side',
+    'x': 'x',
+    'y': 'y',
+    'rotation': 'rotation',
+    'type': 'type',
+    'x size': 'x size',
+    'y size': 'y size',
+    'value': 'value',
+    'footprint': 'footprint',
+    'library': 'library',
+    'DNP': 'DNP',
+    'MPN': 'MPN',
+}
+
+output_formats = {
+    "macrofab": {
+        "origin_mode": "BOTTOMLEFT",
+        "name_map": macrofab_name_map,
+        "units": "thou"},
+    "default": {
+        "origin_mode": "DRILL",
+        "name_map": default_name_map,
+        "units": "mm"},
+}
+
+"""
+Dictionary of supported output formats.
+
+Each format defines:
+- `origin_mode`: Coordinate origin ("DRILL", "BOARD", etc.)
+- `name_map`: Dictionary of column mappings
+- `units`: Units for output. 'mil', 'mm', 'inch' etc.
+"""
