@@ -72,7 +72,7 @@ def get_supported_file_types_df():
                 "header": True,
                 "float_format": "%.2f",
                 "quotechar": '"',
-                "quoting": csv.QUOTE_MINIMAL
+                "quoting": csv.QUOTE_ALL
             },
 
             "extensions": ("xyrs",),

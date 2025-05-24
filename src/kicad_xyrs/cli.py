@@ -67,12 +67,12 @@ def main_cli(pcb, out, output_format, debug):
     settings = kicad_xyrs.Settings()
     settings.origin = get_origin_by_mode(board, origin_mode)
 
-    report = kicad_xyrs.build_footprint_report(board, settings, footprints)
+    report = kicad_xyrs.build_footprint_report(settings, footprints)
     report_df = pd.DataFrame(report)
 
     df = translate_output(format_dict, report_df)
 
-    file_io.write(report_df, out)
+    file_io.write(df, out)
     return sys.exit(0)
 
 def main():

@@ -55,8 +55,9 @@ def translate_output(format_dict, df):
     for field in ["x", "y", "x size", "y size"]:
         df[field] = [convert_units(pt, unit) for pt in df[field]]
 
+    df = df[name_map.keys()]
     df.columns = [name_map.get(h, h) for h in df.columns]
-    return df[name_map.values()]
+    return df
 
 
 def calc_position(center: tuple[float, float], origin: tuple[float, float]):
@@ -112,7 +113,7 @@ def get_field(fp: pcbnew.FOOTPRINT) -> str:
 # Table of fields and how to get them
 _fields = {
     "ref des": (lambda fp, **kwargs: fp.GetReferenceAsString()),
-    "side": (lambda fp, **kwargs: "BOTTOM" if fp.GetSide() else "TOP"),
+    "side": (lambda fp, **kwargs: "bottom" if fp.GetSide() else "top"),
     "x": (lambda fp, **kwargs: get_position(fp, **kwargs)[0]),
     "y": (lambda fp, **kwargs: get_position(fp, **kwargs)[1]),
     "rotation": (lambda fp, **kwargs: fp.GetOrientationDegrees()),
@@ -123,13 +124,13 @@ _fields = {
     "MPN": (lambda fp, **kwargs: get_field(fp)),
     "DNP": (lambda fp, **kwargs: fp.IsDNP()),
     "populate": (lambda fp, **kwargs: not fp.IsDNP()),
+    "footprint": (lambda fp, **kwargs: fp.GetFieldByName("Footprint").GetText().split(":")[1]),
     "library": (lambda fp, **kwargs: fp.GetFieldByName("Footprint").GetText().split(":")[0]),
-    "footprint": (lambda fp, **kwargs: fp.GetFieldByName("Footprint").GetText().split(":")[1])
 }
 
 
 def build_footprint_report(
-    board: pcbnew.BOARD, settings: Settings, footprints: tuple[pcbnew.FOOTPRINT]
+    settings: Settings, footprints: tuple[pcbnew.FOOTPRINT]
 ) -> list[dict]:
     if footprints:
         assert isinstance(footprints[0], pcbnew.FOOTPRINT)

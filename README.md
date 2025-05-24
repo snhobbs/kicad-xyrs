@@ -44,6 +44,7 @@ To export files compatible with Macrofab:
    ```bash
    kicad_xyrs --pcb my_board.kicad_pcb --out my_board.xyrs --format macrofab
    ```
+Macrofab needs to header to be commented out and if the 
 
 3. Upload both the `.zip` Gerber archive and `.xyrs` file to [Macrofab](https://macrofab.com/)
 
