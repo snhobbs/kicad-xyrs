@@ -121,7 +121,7 @@ _fields = {
     "x size": (lambda fp, **kwargs: pcbnew.ToMM(fp.GetCourtyard(pcbnew.F_CrtYd).BBox().GetWidth())),
     "y size": (lambda fp, **kwargs: pcbnew.ToMM(fp.GetCourtyard(pcbnew.F_CrtYd).BBox().GetHeight())),
     "value": (lambda fp, **kwargs: fp.GetValueAsString()),
-    "MPN": (lambda fp, **kwargs: get_field(fp)),
+    "Manufacturer Part Number": (lambda fp, **kwargs: get_field(fp)),
     "DNP": (lambda fp, **kwargs: fp.IsDNP()),
     "populate": (lambda fp, **kwargs: not fp.IsDNP()),
     "footprint": (lambda fp, **kwargs: fp.GetFieldByName("Footprint").GetText().split(":")[1]),
@@ -162,7 +162,7 @@ macrofab_name_map = {
     "value": "Value",
     "footprint": "Footprint",
     "populate": "Populate",
-    "MPN": "MPN",
+    "Manufacturer Part Number": "Manufacturer Part Number",
 }
 
 default_name_map = {
@@ -178,7 +178,7 @@ default_name_map = {
     'footprint': 'footprint',
     'library': 'library',
     'DNP': 'DNP',
-    'MPN': 'MPN',
+    'Manufacturer Part Number': 'Manufacturer Part Number',
 }
 
 output_formats = {
