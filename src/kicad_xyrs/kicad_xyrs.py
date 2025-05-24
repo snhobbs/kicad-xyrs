@@ -122,6 +122,7 @@ _fields = {
     "value": (lambda fp, **kwargs: fp.GetValueAsString()),
     "MPN": (lambda fp, **kwargs: get_field(fp)),
     "DNP": (lambda fp, **kwargs: fp.IsDNP()),
+    "populate": (lambda fp, **kwargs: not fp.IsDNP()),
     "library": (lambda fp, **kwargs: fp.GetFieldByName("Footprint").GetText().split(":")[0]),
     "footprint": (lambda fp, **kwargs: fp.GetFieldByName("Footprint").GetText().split(":")[1])
 }
@@ -159,7 +160,7 @@ macrofab_name_map = {
     "y size": "Y-Size",
     "value": "Value",
     "footprint": "Footprint",
-    "DNP": "Populate",
+    "populate": "Populate",
     "MPN": "MPN",
 }
 
