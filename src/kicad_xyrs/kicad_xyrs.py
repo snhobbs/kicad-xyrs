@@ -110,10 +110,12 @@ def get_field(fp: pcbnew.FOOTPRINT) -> str:
     return field
 
 def get_footprint_size(fp: pcbnew.FOOTPRINT) -> tuple[float, float]:
+    rot = fp.GetOrientationDegrees()
     fp.SetOrientationDegrees(0)
     bbox = fp.GetCourtyard(pcbnew.F_CrtYd).BBox()
     dx = pcbnew.ToMM(bbox.GetWidth())
     dy = pcbnew.ToMM(bbox.GetHeight())
+    fp.SetOrientationDegrees(rot)
     return (dx, dy)
 
 
