@@ -131,8 +131,8 @@ _fields = {
     "y size": (lambda fp, **kwargs: get_footprint_size(fp)[1]),
     "value": (lambda fp, **kwargs: fp.GetValueAsString()),
     "Manufacturer Part Number": (lambda fp, **kwargs: get_field(fp)),
-    "DNP": (lambda fp, **kwargs: fp.IsDNP()),
-    "populate": (lambda fp, **kwargs: not fp.IsDNP()),
+    "DNP": (lambda fp, **kwargs: int(fp.IsDNP())),
+    "populate": (lambda fp, **kwargs: int(not fp.IsDNP())),
     "footprint": (lambda fp, **kwargs: fp.GetFieldByName("Footprint").GetText().split(":")[1]),
     "library": (lambda fp, **kwargs: fp.GetFieldByName("Footprint").GetText().split(":")[0]),
 }
