@@ -109,6 +109,13 @@ def get_field(fp: pcbnew.FOOTPRINT) -> str:
         field = ""
     return field
 
+def get_footprint_size(fp: pcbnew.FOOTPRINT) -> tuple[float, float]:
+    fp.SetOrientationDegrees(0)
+    bbox = fp.GetCourtyard(pcbnew.F_CrtYd).BBox()
+    dx = pcbnew.ToMM(bbox.GetWidth())
+    dy = pcbnew.ToMM(bbox.GetHeight())
+    return (dx, dy)
+
 
 # Table of fields and how to get them
 _fields = {
@@ -118,8 +125,8 @@ _fields = {
     "y": (lambda fp, **kwargs: get_position(fp, **kwargs)[1]),
     "rotation": (lambda fp, **kwargs: fp.GetOrientationDegrees()),
     "type": (lambda fp, **kwargs: "PTH" if fp.HasThroughHolePads() else "SMT"),
-    "x size": (lambda fp, **kwargs: pcbnew.ToMM(fp.GetCourtyard(pcbnew.F_CrtYd).BBox().GetWidth())),
-    "y size": (lambda fp, **kwargs: pcbnew.ToMM(fp.GetCourtyard(pcbnew.F_CrtYd).BBox().GetHeight())),
+    "x size": (lambda fp, **kwargs: get_footprint_size(fp)[0]),
+    "y size": (lambda fp, **kwargs: get_footprint_size(fp)[1]),
     "value": (lambda fp, **kwargs: fp.GetValueAsString()),
     "Manufacturer Part Number": (lambda fp, **kwargs: get_field(fp)),
     "DNP": (lambda fp, **kwargs: fp.IsDNP()),
