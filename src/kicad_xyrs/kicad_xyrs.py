@@ -99,13 +99,14 @@ def get_origin_by_mode(board, mode: str):
     return [pcbnew.ToMM(pt) for pt in origin]
 
 
-def get_field(fp: pcbnew.FOOTPRINT) -> str:
+def get_field(fp: pcbnew.FOOTPRINT, name: str) -> str:
     '''
     Get a field or return empty string
     '''
     try:
-        field = fp.GetFieldByName("MPN").GetText()
+        field = fp.GetFieldByName(name).GetText()
     except AttributeError:
+        _log.warning("Field %s not found, inserting empty string", name)
         field = ""
     return field
 
@@ -119,6 +120,14 @@ def get_footprint_size(fp: pcbnew.FOOTPRINT) -> tuple[float, float]:
     return (dx, dy)
 
 
+def get_footprint_and_library(fp: pcbnew.FOOTPRINT) -> tuple[str, str]:
+    field = fp.GetFieldByName("Footprint")
+    library, footprint = "", ""
+    if field and ":" in field.GetText():
+        library, footprint = field.GetText().split(":")
+    return library, footprint
+
+
 # Table of fields and how to get them
 _fields = {
     "ref des": (lambda fp, **kwargs: fp.GetReferenceAsString()),
@@ -130,11 +139,11 @@ _fields = {
     "x size": (lambda fp, **kwargs: get_footprint_size(fp)[0]),
     "y size": (lambda fp, **kwargs: get_footprint_size(fp)[1]),
     "value": (lambda fp, **kwargs: fp.GetValueAsString()),
-    "Manufacturer Part Number": (lambda fp, **kwargs: get_field(fp)),
+    "Manufacturer Part Number": (lambda fp, **kwargs: get_field(fp, name="Manufacturer Part Number")),
     "DNP": (lambda fp, **kwargs: int(fp.IsDNP())),
     "populate": (lambda fp, **kwargs: int(not fp.IsDNP())),
-    "footprint": (lambda fp, **kwargs: fp.GetFieldByName("Footprint").GetText().split(":")[1]),
-    "library": (lambda fp, **kwargs: fp.GetFieldByName("Footprint").GetText().split(":")[0]),
+    "footprint": (lambda fp, **kwargs: get_footprint_and_library(fp)[1]),
+    "library": (lambda fp, **kwargs: get_footprint_and_library(fp)[0]),
 }
 
 
@@ -143,10 +152,18 @@ def build_footprint_report(
 ) -> list[dict]:
     if footprints:
         assert isinstance(footprints[0], pcbnew.FOOTPRINT)
-    return [
-        {key: value(p, settings=settings) for key, value in _fields.items()}
-        for p in footprints
-    ]
+
+    lines = []
+
+    for p in footprints:
+        try:
+            lines.append(
+                {key: value(p, settings=settings) for key, value in _fields.items()})
+        except Exception as e:
+            _log.error(f"Error with {p.GetReferenceAsString()}: {e}")
+            raise e
+    return lines
+
 
 
 ORIGIN_MODES = {
