@@ -1,4 +1,4 @@
-# kicad_xyrs
+# kicad-xyrs
 
 Command-line tool to export XYRS (position and rotation) data from KiCad PCB files.
 Compatible with Macrofab.
