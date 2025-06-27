@@ -106,7 +106,8 @@ def get_field(fp: pcbnew.FOOTPRINT, name: str) -> str:
     try:
         field = fp.GetFieldByName(name).GetText()
     except AttributeError:
-        _log.warning("Field %s not found, inserting empty string", name)
+        ref = fp.GetReferenceAsString()
+        _log.warning("%s: Field %s not found, inserting empty string", ref, name)
         field = ""
     return field
 
